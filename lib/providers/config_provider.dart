@@ -32,6 +32,20 @@ class ConfigProvider extends ChangeNotifier {
         xiaozhiConfigsJson
             .map((json) => XiaozhiConfig.fromJson(jsonDecode(json)))
             .toList();
+            
+    // 如果没有小智配置，添加默认配置
+    if (_xiaozhiConfigs.isEmpty) {
+      final defaultConfig = XiaozhiConfig(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: "官方小智",
+        websocketUrl: "wss://api.tenclass.net/xiaozhi/v1/",
+        macAddress: "89:d0:a3:08:0f:cd",
+        token: 'test-token',
+      );
+      _xiaozhiConfigs.add(defaultConfig);
+      // 保存新添加的配置
+      await _saveConfigs();
+    }
 
     // 加载多个Dify配置
     final difyConfigsJson = prefs.getStringList('difyConfigs') ?? [];

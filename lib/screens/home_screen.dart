@@ -10,6 +10,7 @@ import 'package:ai_assistant/widgets/conversation_tile.dart';
 import 'package:ai_assistant/widgets/slidable_delete_tile.dart';
 import 'package:ai_assistant/widgets/discovery_screen.dart';
 import 'package:flutter/rendering.dart';
+import 'package:ai_assistant/providers/config_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -479,6 +480,27 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () => _createXiaozhiConversation(context),
+                        icon: const Icon(Icons.record_voice_over, color: Colors.white, size: 20),
+                        label: const Text(
+                          '使用官方小智',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.purple.shade500,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 2,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -730,5 +752,41 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  void _createXiaozhiConversation(BuildContext context) {
+    // 获取ConfigProvider和默认小智配置
+    final configProvider = Provider.of<ConfigProvider>(context, listen: false);
+    
+    // 确保xiaozhiConfigs中至少有一个配置
+    if (configProvider.xiaozhiConfigs.isEmpty) {
+      // 如果没有配置，显示提示信息
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('未找到小智配置，请先在设置中添加'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    
+    // 使用第一个配置（应该是默认的官方小智配置）
+    final defaultConfig = configProvider.xiaozhiConfigs.first;
+    
+    // 创建新对话
+    Provider.of<ConversationProvider>(context, listen: false)
+        .createConversation(
+          title: '与 ${defaultConfig.name} 的对话',
+          type: ConversationType.xiaozhi,
+          configId: defaultConfig.id,
+        ).then((conversation) {
+          // 导航到对话界面
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatScreen(conversation: conversation),
+            ),
+          );
+        });
   }
 }
